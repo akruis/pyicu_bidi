@@ -47,7 +47,7 @@ PyICU_BiDi
 PyICU_BiDi is a quick and dirty ctypes-based binding of the
 Unicode birirectional algorithm.
 
-Git repository: git://github.com/akruis/PyICU_BiDi.git
+Git repository: https://github.com/akruis/pyicu_bidi.git
 """,
     classifiers=[
                  "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
