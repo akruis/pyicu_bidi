@@ -29,80 +29,72 @@ import icu
 visual = u"Latin1 \u060c(\u0643 567 \u062a\u0643\u0631\u0634> More latin 123 \u0643\u062a"
 #          01234567     89     012345     6     7     8     901234567890123456     7     8
 #          0                   1                             2         3
-        
+
 logical_ltr = u"Latin1 \u060c(\u0634\u0631\u0643\u062a 567 \u0643> More latin 123 \u062a\u0643"
 logical_rtl = u"\u062a\u0643 123 More latin <\u0634\u0631\u0643\u062a 567 \u0643)\u060c Latin1"
 runs_rtl = [(1, 35, 3), (0, 32, 3), (1, 31, 1), (0, 21, 10), (1, 14, 7), (0, 11, 3), (1, 6, 5), (0, 0, 5), (0, 5, 1)]
+
 
 class TestBidi(unittest.TestCase):
     def testInverseBidi(self):
         bidi = I.Bidi()
         bidi.inverse = True
         self.assertTrue(bidi.inverse)
-        
+
         bidi.reordering_mode = I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT
         bidi.reordering_options = I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS
-        
+
         self.assertFalse(bidi.inverse)
         self.assertEquals(bidi.reordering_mode, I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT)
         self.assertEquals(bidi.reordering_options, I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
-    
+
         bidi.set_para(visual, I.UBiDiLevel.UBIDI_RTL, None)
         length = bidi.length
         self.assertEquals(length, len(visual))
-        
+
         res = bidi.get_reordered(0
                                  | I.UBidiWriteReorderedOpt.UBIDI_DO_MIRRORING
-                                 | I.UBidiWriteReorderedOpt.UBIDI_KEEP_BASE_COMBINING 
+                                 | I.UBidiWriteReorderedOpt.UBIDI_KEEP_BASE_COMBINING
                                  #| UBidiWriteReorderedOpt.UBIDI_INSERT_LRM_FOR_NUMERIC
                                  )
         n_runs = bidi.count_runs()
         runs = [bidi.get_visual_run(i) for i in range(n_runs)]
         bidi = None
-        
+
         r_sum = sum(r[2] for r in runs)
         self.assertListEqual(runs, runs_rtl)
         self.assertEqual(n_runs, len(runs_rtl))
         self.assertEqual(length, r_sum)
         self.assertEqual(res, logical_rtl)
 
+
 class TestBinding(unittest.TestCase):
-
-
-    def setUp(self):
-        pass
-
-
-    def tearDown(self):
-        pass
-
-
     def testInverseBidi(self):
         pBiDi = I.ubidi_open()
         self.addCleanup(I.ubidi_close, pBiDi)
 
         I.ubidi_setInverse(pBiDi, True)
         self.assertTrue(I.ubidi_isInverse(pBiDi))
-        
+
         I.ubidi_setReorderingMode(pBiDi, I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT)
         I.ubidi_setReorderingOptions(pBiDi, I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
-        
+
         self.assertFalse(I.ubidi_isInverse(pBiDi))
         self.assertEquals(I.ubidi_getReorderingMode(pBiDi), I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT)
         self.assertEquals(I.ubidi_getReorderingOptions(pBiDi), I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
-    
+
         I.ubidi_setPara(pBiDi, visual, len(visual), I.UBiDiLevel.UBIDI_RTL, None, I.IcuErrChecker.DEFAULT_CHECKER)
         length = I.ubidi_getLength(pBiDi)
         self.assertEquals(length, len(visual))
-        
+
         n_runs = I.ubidi_countRuns(pBiDi, I.IcuErrChecker.DEFAULT_CHECKER)
-        size = length + 2*n_runs
+        size = length + 2 * n_runs
         buf = ctypes.create_unicode_buffer(size)
-        buf_len = I.ubidi_writeReordered(pBiDi, buf, size, 0 
-                                         | I.UBidiWriteReorderedOpt.UBIDI_DO_MIRRORING
-                                         | I.UBidiWriteReorderedOpt.UBIDI_KEEP_BASE_COMBINING 
-                                         #| UBidiWriteReorderedOpt.UBIDI_INSERT_LRM_FOR_NUMERIC
-                                         , I.IcuErrChecker.DEFAULT_CHECKER)
+        buf_len = I.ubidi_writeReordered(pBiDi, buf, size,
+                                         I.UBidiWriteReorderedOpt.UBIDI_DO_MIRRORING |
+                                         I.UBidiWriteReorderedOpt.UBIDI_KEEP_BASE_COMBINING |
+                                         # UBidiWriteReorderedOpt.UBIDI_INSERT_LRM_FOR_NUMERIC |
+                                         0, I.IcuErrChecker.DEFAULT_CHECKER)
         r_sum = 0
         runs = []
         for i in range(n_runs):
