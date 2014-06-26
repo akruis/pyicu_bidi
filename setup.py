@@ -62,7 +62,7 @@ Git repository: https://github.com/akruis/pyicu_bidi.git
       keywords='unicode bidi',
       license='GNU Lesser General Public License, version 2.1 or any later version',
       install_requires=[
-        'PyICU>=1.7', 'enum34'
+        'PyICU>=1.4', 'enum34'
       ],
       platforms="any",
       test_suite="icu_bidi",

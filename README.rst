@@ -19,6 +19,4 @@ Changelog
 
 Initial release by science + computing ag as open source.
 Unfortunately almost completely undocumented. Tested only on
-Windows.
-
-
+Windows. It does not work on Linux due to byte order problems.

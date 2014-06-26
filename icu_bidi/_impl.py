@@ -43,20 +43,25 @@ class IcuBindingGenerator(object):
     ZERO = 4
 
     def __init__(self, version):
+        if version[1:2] == '.':
+            # old style versin number
+            version = version[0] + version[2:]
         version = version.split('.')[0]
         libname = self.NAME
         try:
             lib = getattr(ctypes.cdll, libname + version)
-        except AttributeError:
+        except (AttributeError, EnvironmentError):
             libname = ctypes.util.find_library(libname)
             if libname is None:
                 raise
             lib = getattr(ctypes.cdll, libname)
         if version not in self.TESTED_VERSIONS:
-            warnings.warn("Version {} of library {} is untested.".format(version, lib._name))
+            warnings.warn("Version {} of library {} is untested.".format(version, lib._name),
+                          stacklevel=2)
         if array.array('u').itemsize != ctypes.sizeof(ctypes.c_wchar):
             # Completely untested.
-            warnings.warn("Sizeof(Py_UNICODE) == {}, sizeof(wchar_t) =0 {}. Trouble ahead!!".format(array.array('u').itemsize, ctypes.sizeof(ctypes.c_wchar)))
+            warnings.warn("Sizeof(Py_UNICODE) == {}, sizeof(wchar_t) =0 {}. Trouble ahead!!".format(array.array('u').itemsize, ctypes.sizeof(ctypes.c_wchar)),
+                          stacklevel=2)
         self.lib = lib
         self.version = version
 
