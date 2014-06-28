@@ -83,14 +83,15 @@ class TestBinding(unittest.TestCase):
         self.assertEquals(I.ubidi_getReorderingMode(pBiDi), I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT)
         self.assertEquals(I.ubidi_getReorderingOptions(pBiDi), I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
 
-        I.ubidi_setPara(pBiDi, visual, len(visual), I.UBiDiLevel.UBIDI_RTL, None, I.IcuErrChecker.DEFAULT_CHECKER)
+        buf, bufsize = I.ucharbuf_from_text(visual)
+        I.ubidi_setPara(pBiDi, buf, bufsize, I.UBiDiLevel.UBIDI_RTL, None, I.IcuErrChecker.DEFAULT_CHECKER)
         length = I.ubidi_getLength(pBiDi)
         self.assertEquals(length, len(visual))
 
         n_runs = I.ubidi_countRuns(pBiDi, I.IcuErrChecker.DEFAULT_CHECKER)
         size = length + 2 * n_runs
-        buf = ctypes.create_unicode_buffer(size)
-        buf_len = I.ubidi_writeReordered(pBiDi, buf, size,
+        outbuf = I.ucharbuf_sized(size)
+        buf_len = I.ubidi_writeReordered(pBiDi, outbuf, size,
                                          I.UBidiWriteReorderedOpt.UBIDI_DO_MIRRORING |
                                          I.UBidiWriteReorderedOpt.UBIDI_KEEP_BASE_COMBINING |
                                          # UBidiWriteReorderedOpt.UBIDI_INSERT_LRM_FOR_NUMERIC |
@@ -104,7 +105,7 @@ class TestBinding(unittest.TestCase):
             r_sum += r_length.value
             runs.append((direction, r_start.value, r_length.value))
             # print("Run", i, "direction", direction, "start", r_start.value, "length", r_length.value)
-        res = buf[:buf_len]
+        res = I.text_from_ucharbuf(outbuf, buf_len)
         self.assertListEqual(runs, runs_rtl)
         self.assertEqual(n_runs, len(runs_rtl))
         self.assertEqual(length, r_sum)

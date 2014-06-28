@@ -25,7 +25,6 @@ import ctypes.util
 import threading
 import weakref
 import warnings
-import array
 
 from enum import IntEnum
 import icu
@@ -34,7 +33,7 @@ __all__ = ['Bidi', 'UBiDiReorderingMode', 'UBiDiReorderingOption', 'UBiDiDirecti
 
 
 class IcuBindingGenerator(object):
-    TESTED_VERSIONS = ('53')
+    TESTED_VERSIONS = ('48', '53')
     NAME = 'icuuc'
 
     IN = 1
@@ -57,10 +56,6 @@ class IcuBindingGenerator(object):
             lib = getattr(ctypes.cdll, libname)
         if version not in self.TESTED_VERSIONS:
             warnings.warn("Version {} of library {} is untested.".format(version, lib._name),
-                          stacklevel=2)
-        if array.array('u').itemsize != ctypes.sizeof(ctypes.c_wchar):
-            # Completely untested.
-            warnings.warn("Sizeof(Py_UNICODE) == {}, sizeof(wchar_t) =0 {}. Trouble ahead!!".format(array.array('u').itemsize, ctypes.sizeof(ctypes.c_wchar)),
                           stacklevel=2)
         self.lib = lib
         self.version = version
@@ -94,7 +89,44 @@ ctypes_UErrorCode = ctypes.c_int
 ctypes_P_UErrorCode = ctypes.POINTER(ctypes_UErrorCode)
 ctypes_P_c_int32 = ctypes.POINTER(ctypes.c_int32)
 
-ctypes_P_UChar = ctypes.c_wchar_p  # at least for windows
+# Make sure the icu library uses UTF-16
+assert unicode(icu.UnicodeString(u"\U00010000")) == u"\ud800\udc00"
+if ctypes.sizeof(ctypes.c_wchar) == 2:
+    # avoids a copy
+    ctypes_P_UChar = ctypes.c_wchar_p  # at least for windows
+
+    def ucharbuf_from_text(utext):
+        buf = ctypes.create_unicode_buffer(utext)
+        return buf, len(utext)
+
+    def ucharbuf_sized(size):
+        buf = ctypes.create_unicode_buffer(size)
+        return buf
+
+    def text_from_ucharbuf(buf, length):
+        return buf[:length]
+
+else:
+    import codecs
+    uchar_codec = codecs.lookup("UTF-16BE" if codecs.BOM == codecs.BOM_BE else "UTF-16LE")
+
+    class ctypes_UChar(ctypes.Structure):
+        pass
+
+    ctypes_P_UChar = ctypes.POINTER(ctypes_UChar)
+
+    def ucharbuf_from_text(utext):
+        encoded = uchar_codec.encode(utext)[0]
+        buf = ctypes.create_string_buffer(encoded)
+        return ctypes_P_UChar(buf), len(encoded) // 2
+
+    def ucharbuf_sized(size):
+        buf = ctypes.create_string_buffer(size * 2)
+        return ctypes_P_UChar(buf)
+
+    def text_from_ucharbuf(buf, length):
+        p_charbuf = ctypes.cast(buf, ctypes.POINTER(ctypes.c_char * (2 * length)))
+        return uchar_codec.decode(p_charbuf.contents.raw)[0]
 
 
 class IcuErrChecker(object):
@@ -529,8 +561,9 @@ class Bidi(object):
     def set_para(self, text, paraLevel=UBiDiLevel.UBIDI_LTR, embeddingLevels=None):
         if not isinstance(text, unicode):
             text = unicode(text)
-        length = len(text)
-        ubidi_setPara(self.pbidi, text, length, paraLevel, embeddingLevels, IcuErrChecker.DEFAULT_CHECKER)
+        buf, bufsize = ucharbuf_from_text(text)
+        self._parabuf = buf  # keep the buffer alive
+        ubidi_setPara(self.pbidi, buf, bufsize, paraLevel, embeddingLevels, IcuErrChecker.DEFAULT_CHECKER)
 
     def count_runs(self):
         return ubidi_countRuns(self.pbidi, IcuErrChecker.DEFAULT_CHECKER)
@@ -538,9 +571,9 @@ class Bidi(object):
     def get_reordered(self, options):
         n_runs = self.count_runs()
         maxsize = self.length + 2 * n_runs
-        buf = ctypes.create_unicode_buffer(maxsize)
+        buf = ucharbuf_sized(maxsize)
         buf_len = ubidi_writeReordered(self.pbidi, buf, maxsize, int(options), IcuErrChecker.DEFAULT_CHECKER)
-        return buf[:buf_len]
+        return text_from_ucharbuf(buf, buf_len)
 
     def get_visual_run(self, runIndex):
         start = ctypes.c_int32()
