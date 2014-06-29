@@ -15,7 +15,7 @@ Please read the source or create the html-documentation using the following comm
 Changelog
 ---------
 
-2014-xx-xx Version 0.0.2:
+2014-06-29 Version 0.0.2:
 
 Various fixes, added support for Linux.
 
