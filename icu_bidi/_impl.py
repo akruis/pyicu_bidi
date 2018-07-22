@@ -31,9 +31,14 @@ import icu
 
 __all__ = ['Bidi', 'UBiDiReorderingMode', 'UBiDiReorderingOption', 'UBiDiDirection', 'UBidiWriteReorderedOpt', 'UBiDiLevel']
 
+try:
+    unicode  # @UndefinedVariable
+except NameError:
+    unicode = str
+
 
 class IcuBindingGenerator(object):
-    TESTED_VERSIONS = ('48', '53')
+    TESTED_VERSIONS = ('48', '53', '57')
     NAME = 'icuuc'
 
     IN = 1
@@ -90,8 +95,10 @@ ctypes_UErrorCode = ctypes.c_int
 ctypes_P_UErrorCode = ctypes.POINTER(ctypes_UErrorCode)
 ctypes_P_c_int32 = ctypes.POINTER(ctypes.c_int32)
 
-# Make sure the icu library uses UTF-16
-assert unicode(icu.UnicodeString(u"\U00010000")) == u"\ud800\udc00"
+# Make sure the icu library uses UTF-16 internally
+assert (lambda s=icu.UnicodeString(u"\U00010000"): s.length() == 2 and
+        s.charAt(0) == 0xd800 and s.charAt(1) == 0xdc00)()
+
 if ctypes.sizeof(ctypes.c_wchar) == 2:
     # avoids a copy
     ctypes_P_UChar = ctypes.c_wchar_p  # at least for windows

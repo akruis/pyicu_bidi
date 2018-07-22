@@ -21,12 +21,17 @@
 
 
 from setuptools import setup
+import sys
 
 release = None
 for line in open('conf.py'):
     if line.startswith('release = '):
         exec(line)
         break
+
+requires = ['PyICU>=1.4']
+if sys.hexversion < 0x03000000:
+    requires.append('enum34')
 
 setup(
     name='PyICU_BiDi',
@@ -50,20 +55,23 @@ Unicode bidirectional algorithm.
 Git repository: https://github.com/akruis/pyicu_bidi.git
 """,
     classifiers=[
-                 "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
-                 "Programming Language :: Python :: 2.7",
-                 "Programming Language :: Python :: Implementation :: CPython",
-                 "Environment :: Console",
-                 "Operating System :: OS Independent",
-                 "Development Status :: 3 - Alpha",  # hasn't been tested outside of flowGuide2
-                 "Intended Audience :: Developers",
-                 "Topic :: Software Development :: Libraries :: Python Modules",
-      ],
-      keywords='unicode bidi',
-      license='GNU Lesser General Public License, version 2.1 or any later version',
-      install_requires=[
-        'PyICU>=1.4', 'enum34'
-      ],
-      platforms="any",
-      test_suite="icu_bidi",
-    )
+        "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Environment :: Console",
+        "Operating System :: OS Independent",
+        "Development Status :: 3 - Alpha",  # hasn't been tested very much
+        "Intended Audience :: Developers",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: Internationalization",
+        "Topic :: Text Processing",
+        "Topic :: Text Processing :: Linguistic",
+    ],
+    keywords='unicode bidi',
+    license='GNU Lesser General Public License, version 2.1 or any later version',
+    install_requires=requires,
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, <4',
+    platforms="any",
+    test_suite="icu_bidi",
+)
