@@ -45,7 +45,7 @@ PyICU_BiDi
 ----------
 
 PyICU_BiDi is a quick and dirty ctypes-based binding of the
-Unicode birirectional algorithm.
+Unicode bidirectional algorithm.
 
 Git repository: https://github.com/akruis/pyicu_bidi.git
 """,

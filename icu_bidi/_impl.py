@@ -81,6 +81,7 @@ class IcuBindingGenerator(object):
 class ctypes_UBiDi(ctypes.Structure):
     pass
 
+
 ctypes_P_UBiDi = ctypes.POINTER(ctypes_UBiDi)
 ctypes_UBool = ctypes.c_int8
 ctypes_UBiDiLevel = ctypes.c_uint8
@@ -179,6 +180,7 @@ class _DefaultIcuErrChecker(IcuErrChecker):
             checker = IcuErrChecker()
             repository.checker = checker
         return checker
+
 
 IcuErrChecker.DEFAULT_CHECKER = _DefaultIcuErrChecker()
 
@@ -462,6 +464,7 @@ class UBidiWriteReorderedOpt(IntEnum):
     See Also
         ubidi_writeReordered
     """
+
 
 _bg = IcuBindingGenerator(icu.ICU_VERSION)
 

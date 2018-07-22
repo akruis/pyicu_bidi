@@ -21,7 +21,7 @@
 
 from __future__ import absolute_import, print_function, division
 
-from icu_bidi import _impl as I
+from icu_bidi import _impl as I  # @IgnorePep8
 import ctypes
 import unittest
 import icu
@@ -45,16 +45,16 @@ class TestBidi(unittest.TestCase):
         bidi.reordering_options = I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS
 
         self.assertFalse(bidi.inverse)
-        self.assertEquals(bidi.reordering_mode, I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT)
-        self.assertEquals(bidi.reordering_options, I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
+        self.assertEqual(bidi.reordering_mode, I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT)
+        self.assertEqual(bidi.reordering_options, I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
 
         bidi.set_para(visual, I.UBiDiLevel.UBIDI_RTL, None)
         length = bidi.length
-        self.assertEquals(length, len(visual))
+        self.assertEqual(length, len(visual))
 
-        res = bidi.get_reordered(0
-                                 | I.UBidiWriteReorderedOpt.UBIDI_DO_MIRRORING
-                                 | I.UBidiWriteReorderedOpt.UBIDI_KEEP_BASE_COMBINING
+        res = bidi.get_reordered(0 |
+                                 I.UBidiWriteReorderedOpt.UBIDI_DO_MIRRORING |
+                                 I.UBidiWriteReorderedOpt.UBIDI_KEEP_BASE_COMBINING
                                  #| UBidiWriteReorderedOpt.UBIDI_INSERT_LRM_FOR_NUMERIC
                                  )
         n_runs = bidi.count_runs()
@@ -80,13 +80,13 @@ class TestBinding(unittest.TestCase):
         I.ubidi_setReorderingOptions(pBiDi, I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
 
         self.assertFalse(I.ubidi_isInverse(pBiDi))
-        self.assertEquals(I.ubidi_getReorderingMode(pBiDi), I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT)
-        self.assertEquals(I.ubidi_getReorderingOptions(pBiDi), I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
+        self.assertEqual(I.ubidi_getReorderingMode(pBiDi), I.UBiDiReorderingMode.UBIDI_REORDER_INVERSE_LIKE_DIRECT)
+        self.assertEqual(I.ubidi_getReorderingOptions(pBiDi), I.UBiDiReorderingOption.UBIDI_OPTION_INSERT_MARKS)
 
         buf, bufsize = I.ucharbuf_from_text(visual)
         I.ubidi_setPara(pBiDi, buf, bufsize, I.UBiDiLevel.UBIDI_RTL, None, I.IcuErrChecker.DEFAULT_CHECKER)
         length = I.ubidi_getLength(pBiDi)
-        self.assertEquals(length, len(visual))
+        self.assertEqual(length, len(visual))
 
         n_runs = I.ubidi_countRuns(pBiDi, I.IcuErrChecker.DEFAULT_CHECKER)
         size = length + 2 * n_runs
@@ -118,6 +118,7 @@ class TestBinding(unittest.TestCase):
         pBiDi = I.ubidi_open()
         self.addCleanup(I.ubidi_close, pBiDi)
         self.assertRaises(icu.ICUError, I.ubidi_writeReordered, pBiDi, None, -1, 0, I.IcuErrChecker.DEFAULT_CHECKER)
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
