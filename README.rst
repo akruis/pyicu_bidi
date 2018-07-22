@@ -7,13 +7,17 @@ README file for PyICU_BiDi
 Documentation
 -------------
 
-Please read the source or create the html-documentation using the following command::
-
-	``python setup.py build_sphinx``
+Please read the source.
 
 
 Changelog
 ---------
+
+2018-07-22 Version 0.0.3
+
+Added Python 3 support.
+Cleanups, but no functional changes.
+
 
 2014-06-29 Version 0.0.2:
 
